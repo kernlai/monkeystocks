@@ -15,10 +15,11 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: python scripts/build_arena_data.py
-      - name: Commit refreshed prices
+      - run: python scripts/make_cards.py
+      - name: Commit refreshed prices and cards
         run: |
           git config user.name "monkeystocks-bot"
           git config user.email "actions@github.com"
-          git add site/prices.js
-          git diff --cached --quiet || git commit -m "Daily price refresh"
+          git add site/prices.js cards/latest
+          git diff --cached --quiet || git commit -m "Daily refresh: prices + social cards"
           git push
