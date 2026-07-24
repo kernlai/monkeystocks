@@ -149,8 +149,8 @@ for name, r in results.items():
     ax.add_patch(box)
     ax.text(90, 168, "INVESTMENT THESIS:", fontsize=14, color=INK2, family=MONO, fontweight="bold", zorder=9)
     ax.text(90, 124, '"bananas"', fontsize=34, fontweight="bold", color=INK, family=SANS, zorder=9)
-    banana_emoji(ax, 420, 140, 52)
-    ax.text(756, 104, f"— {r['mgr']}, CIO, {r['lab']}", fontsize=13.5, color=INK2, family=MONO,
+    banana_emoji(ax, 400, 154, 44)
+    ax.text(756, 106, f"— {r['mgr']}, CIO, {r['lab']}", fontsize=12.5, color=INK2, family=MONO,
             fontweight="bold", zorder=9, ha="right")
     ax.text(72, 42, "MONKEYSTOCKS.AI", fontsize=13,
             color=INK2, family=MONO, fontweight="bold", zorder=8)
