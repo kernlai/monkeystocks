@@ -13,6 +13,7 @@ import re
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as mp
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import numpy as np
 
 HERE = pathlib.Path(__file__).parent
@@ -116,6 +117,12 @@ def fmt(r):
     return ("+" if r >= 0 else "") + f"{r:.1f}%"
 
 
+BANANA_IMG = plt.imread(HERE / "assets" / "banana.png")
+def banana_emoji(ax, x, y, px=48, z=9):
+    ab = AnnotationBbox(OffsetImage(BANANA_IMG, zoom=px / BANANA_IMG.shape[0]), (x, y),
+                        frameon=False, zorder=z)
+    ax.add_artist(ab)
+
 results = {}
 for name, lab, mgr, col in MONKEYS:
     seed = META["house_seeds"][[m[0] for m in MONKEYS].index(name)]
@@ -142,10 +149,10 @@ for name, r in results.items():
     ax.add_patch(box)
     ax.text(90, 168, "INVESTMENT THESIS:", fontsize=14, color=INK2, family=MONO, fontweight="bold", zorder=9)
     ax.text(90, 124, '"bananas"', fontsize=34, fontweight="bold", color=INK, family=SANS, zorder=9)
-    banana(ax, 395, 150, 0.9, z=9)
+    banana_emoji(ax, 420, 140, 52)
     ax.text(756, 104, f"— {r['mgr']}, CIO, {r['lab']}", fontsize=13.5, color=INK2, family=MONO,
             fontweight="bold", zorder=9, ha="right")
-    ax.text(72, 42, "MONKEYSTOCKS.AI · REAL PRICES · ZERO THOUGHTS", fontsize=13,
+    ax.text(72, 42, "MONKEYSTOCKS.AI", fontsize=13,
             color=INK2, family=MONO, fontweight="bold", zorder=8)
     slug = name.lower().replace(" ", "-")
     fig.savefig(OUT / f"trade_{slug}.png"); plt.close(fig)
@@ -154,7 +161,7 @@ for name, r in results.items():
 fig, ax = canvas()
 logo_chip(ax)
 ax.text(72, 528, "THE LEADERBOARD", fontsize=38, fontweight="bold", color=INK, family=SANS, zorder=8)
-ax.text(74, 490, f"8 monkeys · \$100k each · real prices since {META['arena_start']} · as of {META['updated']}",
+ax.text(74, 490, "8 monkeys · \$100k each · one coin flip a day: buy, sell or hold · real prices",
         fontsize=15, color=INK2, family=MONO, fontweight="bold", zorder=8)
 rows = sorted([(n, r["ret"]) for n, r in results.items()], key=lambda x: -x[1])
 rows_all = rows[:0] + rows  # copy
@@ -177,7 +184,7 @@ for n, ret, is_spx in entries:
     ax.text(958, y, fmt(ret), fontsize=21, family=MONO, fontweight="bold",
             color=(GREEN if ret >= 0 else RED) if not is_spx else INK2, ha="right", zorder=8)
     y -= 46
-ax.text(72, 26, "MONKEYSTOCKS.AI · EVERY THESIS: BANANAS · NOT INTELLIGENCE", fontsize=13,
+ax.text(72, 26, "MONKEYSTOCKS.AI", fontsize=13,
         color=INK2, family=MONO, fontweight="bold", zorder=8)
 coin(ax, 1135, 105, 95)
 fig.savefig(OUT / "leaderboard.png"); plt.close(fig)
