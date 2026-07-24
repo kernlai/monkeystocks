@@ -164,34 +164,55 @@ for name, r in results.items():
 
 # ---------------- leaderboard card ----------------
 fig, ax = canvas()
-logo_chip(ax)
-ax.text(72, 528, "THE LEADERBOARD", fontsize=38, fontweight="bold", color=INK, family=SANS, zorder=8)
-ax.text(74, 490, "8 momentum monkeys · \$100k each · one coin flip a day · buys random recent winners",
-        fontsize=15, color=INK2, family=MONO, fontweight="bold", zorder=8)
+logo_chip(ax, 72, 618)
+ax.text(72, 552, "THE LEADERBOARD", fontsize=34, fontweight="bold", color=INK, family=SANS, zorder=8)
+ax.text(1140, 552, "8 momentum monkeys · one coin flip a day", fontsize=14,
+        color=INK2, family=MONO, fontweight="bold", ha="right", zorder=8)
+
+PL, PR, PT, PB = 60, 1140, 522, 38
+ax.add_patch(mp.FancyBboxPatch((PL+6, PB-6), PR-PL, PT-PB, boxstyle="round,pad=0,rounding_size=14",
+             facecolor=INK, edgecolor="none", zorder=6))
+ax.add_patch(mp.FancyBboxPatch((PL, PB), PR-PL, PT-PB, boxstyle="round,pad=0,rounding_size=14",
+             facecolor=PAPER, edgecolor=INK, lw=3.5, zorder=7))
+
+HDR_H = 46
+ax.add_patch(mp.FancyBboxPatch((PL, PT-HDR_H), PR-PL, HDR_H, boxstyle="round,pad=0,rounding_size=14",
+             facecolor=BAN, edgecolor=INK, lw=3.5, zorder=8))
+ax.add_patch(mp.Rectangle((PL+2, PT-HDR_H), PR-PL-4, HDR_H//2, facecolor=BAN, edgecolor="none", zorder=8))
+ax.plot([PL, PR], [PT-HDR_H, PT-HDR_H], color=INK, lw=3.5, zorder=9)
+C_NAME, C_LAB, C_RET, C_VS = 118, 480, 950, 1108
+ax.text(C_NAME-22, PT-HDR_H+15, "MONKEY", fontsize=13, family=MONO, fontweight="bold", color=INK, zorder=10)
+ax.text(C_LAB, PT-HDR_H+15, "LAB", fontsize=13, family=MONO, fontweight="bold", color=INK, zorder=10)
+ax.text(C_RET, PT-HDR_H+15, "RETURN", fontsize=13, family=MONO, fontweight="bold", color=INK, ha="right", zorder=10)
+ax.text(C_VS, PT-HDR_H+15, "VS S&P", fontsize=13, family=MONO, fontweight="bold", color=INK, ha="right", zorder=10)
+
 rows = sorted([(n, r["ret"]) for n, r in results.items()], key=lambda x: -x[1])
-rows_all = rows[:0] + rows  # copy
 entries = [(n, ret, False) for n, ret in rows] + [("S&P 500", SPY_RET, True)]
 entries.sort(key=lambda x: -x[1])
-y = 442
-medals = ["1", "2", "3"]
-mi = 0
-for n, ret, is_spx in entries:
+n_rows = len(entries)
+ROW_H = (PT - HDR_H - PB - 10) / n_rows
+y_top = PT - HDR_H
+for idx, (n, ret, is_spx) in enumerate(entries):
+    ry = y_top - (idx + 1) * ROW_H
+    cy = ry + ROW_H / 2 - 7
+    if idx < n_rows - 1:
+        ax.plot([PL+14, PR-14], [ry, ry], color="#e5d9b8", lw=1.6, zorder=9)
     if is_spx:
-        ax.add_patch(mp.Rectangle((60, y - 14), 900, 40, facecolor="#f0e9d4", edgecolor="none", zorder=7))
-        ax.text(96, y, "S&P 500 (no coin, no fun)", fontsize=20, color=INK2, family=SANS, fontweight="bold", zorder=8)
-    else:
-        rank = medals[mi] if mi < 3 else " "
-        col = results[n]["col"]
-        ax.add_patch(mp.Circle((82, y + 7), 8, facecolor=col, edgecolor=INK, lw=2, zorder=8))
-        ax.text(96, y, f"{n}", fontsize=21, color=INK, family=SANS, fontweight="bold", zorder=8)
-        ax.text(430, y, results[n]["lab"], fontsize=15, color=INK2, family=SANS, zorder=8)
-        mi += 1
-    ax.text(958, y, fmt(ret), fontsize=21, family=MONO, fontweight="bold",
-            color=(GREEN if ret >= 0 else RED) if not is_spx else INK2, ha="right", zorder=8)
-    y -= 46
-ax.text(72, 26, "MONKEYSTOCKS.AI", fontsize=13,
-        color=INK2, family=MONO, fontweight="bold", zorder=8)
-coin(ax, 1135, 105, 95)
+        ax.add_patch(mp.Rectangle((PL+4, ry+2), PR-PL-8, ROW_H-4, facecolor="#f6efdd", edgecolor="none", zorder=8))
+        ax.text(C_NAME-22, cy, "S&P 500", fontsize=19, color=INK2, family=SANS, fontweight="bold", zorder=10)
+        ax.text(C_RET, cy, fmt(ret), fontsize=19, family=MONO, fontweight="bold", color=INK2, ha="right", zorder=10)
+        ax.text(C_VS, cy, "—", fontsize=19, family=MONO, fontweight="bold", color=INK2, ha="right", zorder=10)
+        continue
+    d = ret - SPY_RET
+    ax.add_patch(mp.Circle((C_NAME-8, cy+7), 8, facecolor=results[n]["col"], edgecolor=INK, lw=2, zorder=10))
+    ax.text(C_NAME+8, cy, n, fontsize=19, color=INK, family=SANS, fontweight="bold", zorder=10)
+    ax.text(C_LAB, cy, results[n]["lab"], fontsize=14.5, color=INK2, family=SANS, zorder=10)
+    ax.text(C_RET, cy, fmt(ret), fontsize=19, family=MONO, fontweight="bold",
+            color=GREEN if ret >= 0 else RED, ha="right", zorder=10)
+    ax.text(C_VS, cy, fmt(d), fontsize=19, family=MONO, fontweight="bold",
+            color=GREEN if d >= 0 else RED, ha="right", zorder=10)
+
+ax.text(72, 16, "MONKEYSTOCKS.AI", fontsize=13, color=INK2, family=MONO, fontweight="bold", zorder=8)
 fig.savefig(OUT / "leaderboard.png"); plt.close(fig)
 
 print("cards written:", sorted(p.name for p in OUT.glob("*.png")))
