@@ -44,3 +44,9 @@ tr:last-child td{border-bottom:none}
 button.btn{font:700 15px "Bricolage Grotesque";background:var(--banana);border:3px solid var(--ink);border-radius:12px;padding:10px 20px;cursor:pointer;box-shadow:3px 3px 0 var(--ink)}
 button.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 @media(max-width:860px){h1{font-size:34px}}
+@media(max-width:640px){
+  header{gap:10px}
+  .logo{font-size:19px}
+  nav{gap:7px}
+  nav a{font-size:10.5px;padding:6px 11px;white-space:nowrap;box-shadow:2px 2px 0 var(--ink)}
+}

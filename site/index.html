@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="canonical" href="https://monkeystocks.ai/">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 <meta property="og:title" content="MonkeyStocks — “My AI is amazing at trading stocks.” So is a coin-flipping monkey.">
 <meta property="og:description" content="Eight monkeys, one three-sided coin, real market prices. Every trade thesis: bananas. Hire a monkey and put it on the leaderboard.">
 <meta property="og:type" content="website">
@@ -45,8 +45,7 @@ tr.mine td{background:#fff3f9}
 .yours{font-family:"Space Mono",monospace;font-size:9.5px;font-weight:700;background:#ff2fa0;color:#fff;border:1.5px solid var(--ink);border-radius:99px;padding:2px 7px;margin-left:8px;vertical-align:1px}
 .rm{border:none;background:none;cursor:pointer;color:var(--ink2);font-size:13px;margin-left:8px}
 .rm:hover{color:var(--red)}
-.chart-pad{padding:18px 16px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-#chart svg{min-width:760px}
+.chart-pad{padding:18px 16px 4px}
 @media(max-width:560px){
   #lb td:nth-child(2),#lb th:nth-child(2){display:none}
   #lb td,#lb th{padding:12px 12px;font-size:14px}
@@ -228,11 +227,16 @@ document.querySelector('#lb tbody').innerHTML = lbRows.map(r=>{
 }).join('');
 
 const chartEl=document.getElementById('chart');
-drawChart(chartEl,[
-  ...MONKEYS.map(m=>({navs:m.navs,c:m.c,id:"ln-"+m.seed,label:m.n})),
-  ...MINE.map(u=>({navs:u.navs,c:u.c,w:3.2,id:"ln-u"+u.seed,label:u.n+" ⭐"})),
-  {navs:SPY_NAVS,c:"#20180a",dash:true,w:2,id:"ln-spy",label:"S&P 500"},
-],{w:1040,h:430});
+function renderPerf(){
+  const mob=window.innerWidth<700;
+  drawChart(chartEl,[
+    ...MONKEYS.map(m=>({navs:m.navs,c:m.c,id:"ln-"+m.seed,label:mob?undefined:m.n})),
+    ...MINE.map(u=>({navs:u.navs,c:u.c,w:3.2,id:"ln-u"+u.seed,label:mob?undefined:(u.n+" ⭐")})),
+    {navs:SPY_NAVS,c:"#20180a",dash:true,w:2,id:"ln-spy",label:mob?undefined:"S&P 500"},
+  ], mob?{w:440,h:330}:{w:1040,h:430});
+}
+renderPerf();
+let _rT; window.addEventListener('resize',()=>{clearTimeout(_rT);_rT=setTimeout(renderPerf,150)});
 
 // ---------- drawn monkey (shared rig) ----------
 const MONKEY_SVG=`<svg viewBox="0 0 220 210" fill="none" xmlns="http://www.w3.org/2000/svg">

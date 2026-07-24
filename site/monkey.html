@@ -5,7 +5,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="canonical" href="https://monkeystocks.ai/monkey.html">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 <meta property="og:title" content="Hire a Monkey — MonkeyStocks">
 <meta property="og:description" content="Hire a monkey, watch it trade 6 months of real prices, put it on the leaderboard.">
 <meta property="og:type" content="website">
@@ -25,8 +25,7 @@
 .hint{margin-top:26px;font-family:"Space Mono",monospace;font-size:13px;color:var(--ink2)}
 .hint b{color:var(--ink)}
 .results{display:flex;flex-direction:column;gap:18px}
-.chart-pad{padding:14px 12px 8px;min-height:220px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-#chart svg{min-width:600px}
+.chart-pad{padding:14px 12px 8px;min-height:220px}
 .scorecard{display:none;padding:18px;gap:14px;align-items:stretch}
 .scorecard.show{display:grid;grid-template-columns:repeat(3,1fr)}
 .sc{border:2.5px solid var(--ink);border-radius:14px;padding:12px 14px;background:var(--cream);box-shadow:3px 3px 0 var(--ink)}
@@ -129,7 +128,7 @@ scene.onclick=()=>{
     drawChart(chartEl,[
       {navs:SPY_NAVS.slice(0,shown),c:"#20180a",dash:true,w:2},
       {navs:navs.slice(0,shown),c:"#e0472e",w:3},
-    ],{h:260});
+    ],{h:260,w:window.innerWidth<700?440:760});
     // stream trades whose day has been revealed
     trades.filter(tr=>tr.t<shown && !tr.done).forEach(tr=>{
       tr.done=true;
