@@ -164,9 +164,9 @@ for name, r in results.items():
 
 # ---------------- leaderboard card ----------------
 fig, ax = canvas()
-logo_chip(ax, 72, 618)
-ax.text(72, 552, "THE LEADERBOARD", fontsize=34, fontweight="bold", color=INK, family=SANS, zorder=8)
-ax.text(1140, 552, "8 momentum monkeys · one coin flip a day", fontsize=14,
+logo_chip(ax, 72, 628)
+ax.text(72, 545, "THE LEADERBOARD", fontsize=34, fontweight="bold", color=INK, family=SANS, zorder=8)
+ax.text(1140, 545, "8 momentum monkeys · one coin flip a day", fontsize=14,
         color=INK2, family=MONO, fontweight="bold", ha="right", zorder=8)
 
 PL, PR, PT, PB = 60, 1140, 522, 38
