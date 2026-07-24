@@ -60,6 +60,7 @@ MENUS = MARKET["menus"]
 def replay(seed):
     rng = mulberry32(seed)
     cash, hold, trades = 100000.0, {}, []
+    navs = [0.0]
     for t in range(1, T):
         j_any = math.floor(rng() * len(TKS))
         f = rng()
@@ -79,8 +80,9 @@ def replay(seed):
                 usd = hold.pop(tk) * PX[tk][t]
                 cash += usd
                 trades.append((t, "SELL", tk, PX[tk][t], usd))
-    ret = (cash + sum(sh * PX[s][-1] for s, sh in hold.items())) / 1000 - 100
-    return trades, ret
+        navs.append((cash + sum(sh * PX[s][t] for s, sh in hold.items())) / 1000 - 100)
+    ret = navs[-1]
+    return trades, ret, navs
 
 
 def canvas():
@@ -131,8 +133,8 @@ def banana_emoji(ax, x, y, px=48, z=9):
 results = {}
 for name, lab, mgr, col in MONKEYS:
     seed = META["house_seeds"][[m[0] for m in MONKEYS].index(name)]
-    trades, ret = replay(seed)
-    results[name] = dict(trades=trades, ret=ret, lab=lab, mgr=mgr, col=col)
+    trades, ret, navs = replay(seed)
+    results[name] = dict(trades=trades, ret=ret, navs=navs, lab=lab, mgr=mgr, col=col)
 
 # ---------------- trade cards ----------------
 for name, r in results.items():
@@ -214,5 +216,76 @@ for idx, (n, ret, is_spx) in enumerate(entries):
 
 ax.text(72, 16, "MONKEYSTOCKS.AI", fontsize=13, color=INK2, family=MONO, fontweight="bold", zorder=8)
 fig.savefig(OUT / "leaderboard.png"); plt.close(fig)
+
+# ---------------- leaderboard + chart combo ----------------
+fig, ax = canvas()
+logo_chip(ax, 72, 628)
+ax.text(72, 545, "THE LEADERBOARD", fontsize=34, fontweight="bold", color=INK, family=SANS, zorder=8)
+ax.text(1140, 545, "8 momentum monkeys · one coin flip a day", fontsize=14,
+        color=INK2, family=MONO, fontweight="bold", ha="right", zorder=8)
+
+def panel(x0, y0, x1, y1):
+    ax.add_patch(mp.FancyBboxPatch((x0+6, y0-6), x1-x0, y1-y0, boxstyle="round,pad=0,rounding_size=14",
+                 facecolor=INK, edgecolor="none", zorder=6))
+    ax.add_patch(mp.FancyBboxPatch((x0, y0), x1-x0, y1-y0, boxstyle="round,pad=0,rounding_size=14",
+                 facecolor=PAPER, edgecolor=INK, lw=3.5, zorder=7))
+
+panel(60, 38, 730, 522)
+spy_pct = [PX["SPY"][t] / PX["SPY"][0] * 100 - 100 for t in range(T)]
+all_series = [r["navs"] for r in results.values()] + [spy_pct]
+lo = min(min(sv) for sv in all_series) - 4
+hi = max(max(sv) for sv in all_series) + 4
+CX0, CX1, CY0, CY1 = 128, 700, 88, 490
+def gx(i): return CX0 + i / (T - 1) * (CX1 - CX0)
+def gy(v): return CY0 + (v - lo) / (hi - lo) * (CY1 - CY0)
+import numpy as _np
+step = 20 if hi - lo > 60 else 10
+for gl in range(int(_np.ceil(lo / step)) * step, int(hi) + 1, step):
+    ax.plot([CX0, CX1], [gy(gl), gy(gl)], color="#e5d9b8", lw=1.4, zorder=8)
+    ax.text(CX0 - 10, gy(gl) - 5, f"{'+' if gl > 0 else ''}{gl}%", fontsize=11, family=MONO,
+            fontweight="bold", color=INK2, ha="right", zorder=9)
+ax.plot([CX0, CX1], [gy(0), gy(0)], color=INK, lw=1.6, alpha=.4, zorder=8)
+MMM = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+for i in [0, T // 2, T - 1]:
+    d = DATES[i]
+    lbl = MMM[int(d[5:7]) - 1] + "-" + d[2:4]
+    ax.text(gx(i), CY0 - 26, lbl, fontsize=11, family=MONO, fontweight="bold", color=INK2,
+            ha="left" if i == 0 else ("right" if i == T - 1 else "center"), zorder=9)
+xs = [gx(i) for i in range(T)]
+for n, r in results.items():
+    ax.plot(xs, [gy(v) for v in r["navs"]], color=r["col"], lw=2.2, zorder=9,
+            solid_joinstyle="round", solid_capstyle="round")
+ax.plot(xs, [gy(v) for v in spy_pct], color=INK, lw=1.8, ls=(0, (4, 3)), zorder=9)
+
+TPL, TPR, TPT, TPB = 750, 1140, 522, 38
+panel(TPL, TPB, TPR, TPT)
+HDR_H = 46
+ax.add_patch(mp.FancyBboxPatch((TPL, TPT - HDR_H), TPR - TPL, HDR_H, boxstyle="round,pad=0,rounding_size=14",
+             facecolor=BAN, edgecolor=INK, lw=3.5, zorder=8))
+ax.add_patch(mp.Rectangle((TPL + 2, TPT - HDR_H), TPR - TPL - 4, HDR_H // 2, facecolor=BAN, edgecolor="none", zorder=8))
+ax.plot([TPL, TPR], [TPT - HDR_H, TPT - HDR_H], color=INK, lw=3.5, zorder=9)
+ax.text(TPL + 34, TPT - HDR_H + 15, "MONKEY", fontsize=13, family=MONO, fontweight="bold", color=INK, zorder=10)
+ax.text(TPR - 26, TPT - HDR_H + 15, "RETURN", fontsize=13, family=MONO, fontweight="bold", color=INK, ha="right", zorder=10)
+rows2 = sorted([(n, r["ret"]) for n, r in results.items()], key=lambda x: -x[1])
+entries2 = [(n, ret, False) for n, ret in rows2] + [("S&P 500", spy_pct[-1], True)]
+entries2.sort(key=lambda x: -x[1])
+ROW_H2 = (TPT - HDR_H - TPB - 10) / len(entries2)
+for idx, (n, ret, is_spx) in enumerate(entries2):
+    ry = TPT - HDR_H - (idx + 1) * ROW_H2
+    cy = ry + ROW_H2 / 2 - 6
+    if idx < len(entries2) - 1:
+        ax.plot([TPL + 14, TPR - 14], [ry, ry], color="#e5d9b8", lw=1.6, zorder=9)
+    if is_spx:
+        ax.add_patch(mp.Rectangle((TPL + 4, ry + 2), TPR - TPL - 8, ROW_H2 - 4, facecolor="#f6efdd", edgecolor="none", zorder=8))
+        ax.text(TPL + 34, cy, "S&P 500", fontsize=16, color=INK2, family=SANS, fontweight="bold", zorder=10)
+        ax.text(TPR - 26, cy, fmt(ret), fontsize=16, family=MONO, fontweight="bold", color=INK2, ha="right", zorder=10)
+        continue
+    ax.add_patch(mp.Circle((TPL + 42, cy + 6), 7, facecolor=results[n]["col"], edgecolor=INK, lw=2, zorder=10))
+    ax.text(TPL + 56, cy, n, fontsize=16, color=INK, family=SANS, fontweight="bold", zorder=10)
+    ax.text(TPR - 26, cy, fmt(ret), fontsize=16, family=MONO, fontweight="bold",
+            color=GREEN if ret >= 0 else RED, ha="right", zorder=10)
+
+ax.text(72, 16, "MONKEYSTOCKS.AI", fontsize=13, color=INK2, family=MONO, fontweight="bold", zorder=8)
+fig.savefig(OUT / "leaderboard_chart.png"); plt.close(fig)
 
 print("cards written:", sorted(p.name for p in OUT.glob("*.png")))
