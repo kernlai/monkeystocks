@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: monkeystocks
+    runtime: static
+    staticPublishPath: ./site
+    buildCommand: ""
+    domains:
+      - monkeystocks.ai
+      - www.monkeystocks.ai
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN

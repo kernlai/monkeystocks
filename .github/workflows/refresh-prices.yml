@@ -1,0 +1,24 @@
+name: Refresh prices
+on:
+  schedule:
+    - cron: "45 22 * * 1-5"   # 22:45 UTC weekdays, after US close
+  workflow_dispatch:
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python scripts/build_arena_data.py
+      - name: Commit refreshed prices
+        run: |
+          git config user.name "monkeystocks-bot"
+          git config user.email "actions@github.com"
+          git add site/prices.js
+          git diff --cached --quiet || git commit -m "Daily price refresh"
+          git push

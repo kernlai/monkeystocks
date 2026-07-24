@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade Log — MonkeyStocks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="canonical" href="https://monkeystocks.ai/tradelog.html">
+<link rel="stylesheet" href="style.css?v=2">
+<meta property="og:title" content="Trade Log — MonkeyStocks">
+<meta property="og:description" content="Every trade, every fill. Every thesis: bananas.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://monkeystocks.ai/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://monkeystocks.ai/og.png">
+<style>
+.head{margin:30px 0 20px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-family:"Space Mono",monospace;font-size:11.5px;border:2px solid var(--ink);border-radius:99px;padding:5px 12px;background:var(--paper);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+.chip.on{background:var(--ink);color:var(--banana)}
+.thesis-btn{font-family:"Space Mono",monospace;font-size:11px;font-weight:700;background:var(--banana);
+  border:2px solid var(--ink);border-radius:99px;padding:4px 12px;cursor:pointer;box-shadow:2px 2px 0 var(--ink);white-space:nowrap}
+.thesis-btn:active{transform:translate(1px,1px);box-shadow:0 0 0 var(--ink)}
+.log tbody tr:hover{background:#fff8e0}
+@media(max-width:560px){
+  .log td:nth-child(6),.log th:nth-child(6),.log td:nth-child(5),.log th:nth-child(5){display:none}
+  td,th{padding:10px 10px}
+}
+.side{font-family:"Space Mono",monospace;font-weight:700;font-size:12px}
+.m b{font-weight:700}
+td.usd{color:var(--ink2)}
+</style></head><body>
+<div class="wrap">
+
+<header>
+  <a class="logo" href="index.html"><span>🍌 MONKEYSTOCKS</span></a>
+  <nav>
+    <a href="index.html">Arena</a>
+    <a href="tradelog.html" class="on">Trade log</a>
+    <a href="https://substack.com/@theagenticanalyst" target="_blank" rel="noopener">The serious bit ↗</a>
+    <a href="monkey.html">Hire a monkey</a>
+  </nav>
+</header>
+
+<div class="head">
+  <div>
+    <h1>The trade log.</h1>
+    <p class="sub">Every trade, every fill, full transparency. Click any row for the complete investment thesis behind the position.</p>
+  </div>
+  <div class="filters" id="filters"><span class="chip on" data-f="ALL">ALL</span></div>
+</div>
+
+<div class="panel">
+  <h2>Executed trades <small id="count"></small><small>click any trade for the thesis</small></h2>
+  <table class="log" id="log"><thead><tr><th>Date</th><th>Monkey</th><th>Side</th><th>Ticker</th><th>Fill</th><th>Size</th><th>Thesis</th></tr></thead><tbody></tbody></table>
+</div>
+
+<div class="footnote">
+<b>DISCLOSURE:</b> all fills at real daily prices over the last 6 months. Every thesis was produced by the manager personally and reflects their highest-conviction view at the time of the flip. It is always bananas. 🍌 Not investment advice.
+</div>
+</div>
+
+<div class="pop" id="pop" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="bubble">
+    <div class="who" id="p-who"></div>
+    <h3 id="p-trade"></h3>
+    <div class="lead">We asked for the full investment thesis behind this trade. The manager responded:</div>
+    <div class="nana">🍌</div>
+    <div class="word">"bananas"</div>
+    <button class="btn" onclick="pop.classList.remove('open')" style="margin-top:20px">makes sense tbh</button>
+  </div>
+</div>
+
+<script src="prices.js?v=5"></script>
+<script src="engine.js?v=5"></script>
+<script>
+const all = MONKEYS.flatMap(m => m.trades.map(tr => ({...tr, m}))).sort((a,b)=>b.t-a.t);
+const filters = document.getElementById('filters');
+MONKEYS.forEach(m => {
+  const c=document.createElement('span'); c.className='chip'; c.dataset.f=m.n; c.textContent=m.n.split(' ')[0].toUpperCase();
+  filters.appendChild(c);
+});
+let cur="ALL";
+function render(){
+  const rows = all.filter(x => cur==="ALL" || x.m.n===cur).slice(0,200);
+  document.querySelector('#log tbody').innerHTML = rows.map(x=>`
+    <tr onclick='thesis("${x.m.n} · ${MARKET.dates[x.t]}","${x.side} ${x.tk} @ $${x.px.toFixed(2)}")'>
+    <td class="mono" style="font-size:12px">${MARKET.dates[x.t]}</td>
+    <td class="m"><span class="dotc" style="background:${x.m.c}"></span><b>${x.m.n}</b></td>
+    <td class="side ${x.side==='BUY'?'up':'dn'}">${x.side}</td>
+    <td class="mono">${x.tk}</td>
+    <td class="mono">$${x.px.toFixed(2)}</td>
+    <td class="usd">$${Math.round(x.usd).toLocaleString()}</td>
+    <td><button class="thesis-btn">read thesis</button></td></tr>`).join('');
+  document.getElementById('count').textContent = `${rows.length} of ${all.length} trades · 8 managers · 6 months`;
+}
+filters.onclick=e=>{
+  if(!e.target.dataset.f) return;
+  cur=e.target.dataset.f;
+  [...filters.children].forEach(c=>c.classList.toggle('on',c.dataset.f===cur));
+  render();
+};
+render();
+</script>
+</body></html>
