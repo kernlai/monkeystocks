@@ -4,25 +4,28 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a
 const TKS = Object.keys(MARKET.px).filter(t => t !== "SPY");
 const NDAYS = MARKET.dates.length;
 
-// One monkey, full 6 months. Matches the seed-calibration run exactly.
+// One momentum monkey, full window. Buys draw from MARKET.menus (top quarter
+// by trailing 3-month return, precomputed). Mirrors build_arena_data.py exactly.
 function runMonkey(seed){
   const rng = mulberry32(seed);
   let cash = 100000; const hold = {}; const navs = [100]; const trades = [];
   for(let t = 1; t < NDAYS; t++){
-    const j = Math.floor(rng() * TKS.length);
+    const jAny = Math.floor(rng() * TKS.length);
     const f = rng();
-    const tk = TKS[j], px = MARKET.px[tk][t];
-    let nav = cash; for(const s in hold) nav += hold[s] * MARKET.px[s][t];
     if(f < 1/3){
+      const menu = MARKET.menus[t];
+      const tk = TKS[menu[Math.floor(rng() * menu.length)]];
       const frac = 0.05 + rng() * 0.07;
+      let nav = cash; for(const s in hold) nav += hold[s] * MARKET.px[s][t];
       const spend = Math.min(frac * nav, cash);
-      if(spend > 1){ hold[tk] = (hold[tk]||0) + spend/px; cash -= spend;
-        trades.push({t, side:"BUY", tk, px, usd:spend}); }
-    } else if(f < 2/3 && hold[tk]){
-      const usd = hold[tk] * px; cash += usd; delete hold[tk];
-      trades.push({t, side:"SELL", tk, px, usd});
+      if(spend > 1){ hold[tk] = (hold[tk]||0) + spend/MARKET.px[tk][t]; cash -= spend;
+        trades.push({t, side:"BUY", tk, px:MARKET.px[tk][t], usd:spend}); }
+    } else if(f < 2/3){
+      const tk = TKS[jAny];
+      if(hold[tk]){ const usd = hold[tk] * MARKET.px[tk][t]; cash += usd; delete hold[tk];
+        trades.push({t, side:"SELL", tk, px:MARKET.px[tk][t], usd}); }
     }
-    nav = cash; for(const s in hold) nav += hold[s] * MARKET.px[s][t];
+    let nav = cash; for(const s in hold) nav += hold[s] * MARKET.px[s][t];
     navs.push(nav / 1000);
   }
   return {navs, trades, ret: navs[navs.length-1] - 100};

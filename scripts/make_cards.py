@@ -55,25 +55,30 @@ def mulberry32(seed):
     return rng
 
 
+MENUS = MARKET["menus"]
+
 def replay(seed):
     rng = mulberry32(seed)
     cash, hold, trades = 100000.0, {}, []
     for t in range(1, T):
-        j = math.floor(rng() * len(TKS))
+        j_any = math.floor(rng() * len(TKS))
         f = rng()
-        tk, p = TKS[j], PX[TKS[j]][t]
         if f < 1/3:
-            nav = cash + sum(sh * PX[s][t] for s, sh in hold.items())
+            menu = MENUS[t]
+            tk = TKS[menu[math.floor(rng() * len(menu))]]
             frac = 0.05 + rng() * 0.07
+            nav = cash + sum(sh * PX[s][t] for s, sh in hold.items())
             spend = min(frac * nav, cash)
             if spend > 1:
-                hold[tk] = hold.get(tk, 0) + spend / p
+                hold[tk] = hold.get(tk, 0) + spend / PX[tk][t]
                 cash -= spend
-                trades.append((t, "BUY", tk, p, spend))
-        elif f < 2/3 and tk in hold:
-            usd = hold.pop(tk) * p
-            cash += usd
-            trades.append((t, "SELL", tk, p, usd))
+                trades.append((t, "BUY", tk, PX[tk][t], spend))
+        elif f < 2/3:
+            tk = TKS[j_any]
+            if tk in hold:
+                usd = hold.pop(tk) * PX[tk][t]
+                cash += usd
+                trades.append((t, "SELL", tk, PX[tk][t], usd))
     ret = (cash + sum(sh * PX[s][-1] for s, sh in hold.items())) / 1000 - 100
     return trades, ret
 
@@ -161,7 +166,7 @@ for name, r in results.items():
 fig, ax = canvas()
 logo_chip(ax)
 ax.text(72, 528, "THE LEADERBOARD", fontsize=38, fontweight="bold", color=INK, family=SANS, zorder=8)
-ax.text(74, 490, "8 monkeys · \$100k each · one coin flip a day: buy, sell or hold · real prices",
+ax.text(74, 490, "8 momentum monkeys · \$100k each · one coin flip a day · buys random recent winners",
         fontsize=15, color=INK2, family=MONO, fontweight="bold", zorder=8)
 rows = sorted([(n, r["ret"]) for n, r in results.items()], key=lambda x: -x[1])
 rows_all = rows[:0] + rows  # copy

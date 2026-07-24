@@ -1,12 +1,16 @@
 """Rebuild MonkeyStocks data from live Yahoo prices.
 
-- Window: 2025-11-25 (arena start) -> today, dividend-adjusted daily prices
-- Universe: the 89 tickers the AI models traded (from feed_all.json) + SPY
-- Runs 10,000 seeded monkeys (exact port of engine.js mulberry32 sim)
-- House 8 = a FIXED random draw from the 10,000 (seeded, reproducible)
-- Emits arena/coin/prices.js with MARKET = {dates, px, meta}
+MOMENTUM MONKEYS: once per trading day each monkey flips a fair three-sided
+coin. A buy invests a random 5-12% of the portfolio in a stock drawn at random
+from the top quarter of the universe by trailing 3-month return (the "recent
+winners" menu). A sell closes the position in a uniformly random stock, if
+held. A hold does nothing. Long only, real dividend-adjusted prices.
 
-Re-run any time (cron/GH Action) to refresh the site with latest closes.
+- Window: 2025-11-25 (arena start) -> today; extra history fetched for lookback
+- Universe: the 89 tickers the AI models traded + SPY
+- Daily momentum menus are precomputed and shipped in prices.js so the
+  browser engine replays the exact same monkeys (seeded mulberry32 PRNG)
+- Exactly 8 monkeys, fixed seeds 1-8. No pool, no selection.
 """
 import json
 import math
@@ -18,24 +22,38 @@ import pandas as pd
 import yfinance as yf
 
 HERE = pathlib.Path(__file__).parent
-START = "2025-11-20"          # few days' buffer before arena start
+FETCH_START = "2025-08-12"      # ~70 trading days of lookback before arena start
 ARENA_START = "2025-11-25"
-N_MONKEYS = 10_000
-SELECT_SEED = 20251125        # fixed: which 8 of the 10,000 are "ours"
+LOOKBACK = 63                   # trailing 3 months
+SEEDS = [1, 2, 3, 4, 5, 6, 7, 8]   # the whole zoo
 
 tickers = json.loads((HERE.parent / "data" / "universe.json").read_text())["tickers"]
 
-data = yf.download(tickers + ["SPY"], start=START, auto_adjust=True, progress=False)
+data = yf.download(tickers + ["SPY"], start=FETCH_START, auto_adjust=True, progress=False)
 closes = data["Close"].ffill()
-closes = closes[closes.index >= ARENA_START]
 good = sorted(t for t in closes.columns if closes[t].notna().mean() > 0.9 and t != "SPY")
-px = {t: [round(v, 2) for v in closes[t]] for t in good}
-px["SPY"] = [round(v, 2) for v in closes["SPY"]]
-dates = [d.strftime("%Y-%m-%d") for d in closes.index]
-T, K = len(dates), len(good)
-print(f"{K} tickers x {T} days, {dates[0]} -> {dates[-1]}")
+ext = closes[good + ["SPY"]].dropna(how="all")
+s0 = int(np.searchsorted(ext.index, pd.Timestamp(ARENA_START)))
+assert s0 > LOOKBACK, "not enough lookback history"
 
-# ---- exact port of engine.js mulberry32 + sim ----
+win = ext.iloc[s0:]
+px = {t: [round(v, 2) for v in win[t]] for t in good}
+px["SPY"] = [round(v, 2) for v in win["SPY"]]
+dates = [d.strftime("%Y-%m-%d") for d in win.index]
+T, K = len(dates), len(good)
+N_TOP = max(1, K // 4)
+print(f"{K} tickers x {T} days, menus top-{N_TOP}, {dates[0]} -> {dates[-1]}")
+
+C_ext = ext[good].to_numpy()  # TE x K
+MENUS = [[]]
+for t in range(1, T):
+    i = s0 + t
+    mom = C_ext[i - 1] / C_ext[i - 1 - LOOKBACK] - 1
+    MENUS.append(np.argsort(mom)[-N_TOP:].tolist())
+
+P = np.array([px[t] for t in good])  # K x T
+
+
 def mulberry32(seed):
     a = seed & 0xffffffff
     def rng():
@@ -47,63 +65,46 @@ def mulberry32(seed):
         return ((t ^ (t >> 14)) & 0xffffffff) / 4294967296
     return rng
 
-P = np.array([px[t] for t in good])  # K x T
 
 def sim(seed):
     rng = mulberry32(seed)
     cash, hold = 100000.0, {}
     for t in range(1, T):
-        j = math.floor(rng() * K)
+        j_any = math.floor(rng() * K)
         f = rng()
-        p = P[j, t]
         if f < 1/3:
-            nav = cash + sum(sh * P[s, t] for s, sh in hold.items())
+            menu = MENUS[t]
+            pick = menu[math.floor(rng() * len(menu))]
             frac = 0.05 + rng() * 0.07
+            nav = cash + sum(sh * P[s, t] for s, sh in hold.items())
             spend = min(frac * nav, cash)
             if spend > 1:
-                hold[j] = hold.get(j, 0) + spend / p
+                hold[pick] = hold.get(pick, 0) + spend / P[pick, t]
                 cash -= spend
-        elif f < 2/3 and j in hold:
-            cash += hold.pop(j) * p
+        elif f < 2/3 and j_any in hold:
+            cash += hold.pop(j_any) * P[j_any, t]
     return (cash + sum(sh * P[s, -1] for s, sh in hold.items())) / 1000 - 100
 
-print("running 10,000 monkeys...")
-rets = np.array([sim(s) for s in range(1, N_MONKEYS + 1)])
-sel = np.random.default_rng(SELECT_SEED)
-# 6 seats are a pure random draw; 2 seats are reserved (disclosed on site):
-# the monkeys closest to the famous +68% and to +35%.
-PICKS = [67.9, 35.0]
-reserved = []
-for tgt in PICKS:
-    cand = int(np.argmin(np.abs(rets - tgt))) + 1
-    while cand in reserved:
-        cand += 1
-    reserved.append(cand)
-    print(f"reserved seat ~{tgt}%: seed {cand} at {rets[cand-1]:+.2f}%")
-pool = np.setdiff1d(np.arange(1, N_MONKEYS + 1), reserved)
-house = sel.choice(pool, 6, replace=False).tolist() + reserved
-house = sorted(house, key=lambda s: -rets[s - 1])  # names map best->worst
-exhibit = reserved[0]
+
+print("running the 8 momentum monkeys...")
+rets = {s: sim(s) for s in SEEDS}
+house = sorted(SEEDS, key=lambda s: -rets[s])  # names map best->worst
 spy_ret = px["SPY"][-1] / px["SPY"][0] * 100 - 100
 
 meta = {
     "updated": date.today().isoformat(),
     "arena_start": ARENA_START,
-    "n_monkeys": N_MONKEYS,
+    "style": "momentum",
+    "lookback_td": LOOKBACK,
+    "menu_size": N_TOP,
     "house_seeds": house,
-    "house_rets": [round(float(rets[s - 1]), 2) for s in house],
-    "exhibit_seed": exhibit,
-    "reserved_seeds": reserved,
-    "median_pct": round(float(np.median(rets)), 2),
-    "best_pct": round(float(rets.max()), 2),
-    "worst_pct": round(float(rets.min()), 2),
-    "pct_beat_spy": round(float((rets > spy_ret).mean() * 100), 1),
+    "house_rets": [round(float(rets[s]), 2) for s in house],
     "spy_pct": round(spy_ret, 2),
 }
 print(json.dumps(meta, indent=2))
 
-out = {"dates": dates, "px": px, "meta": meta}
+out = {"dates": dates, "px": px, "menus": MENUS, "meta": meta}
 f = HERE.parent / "site" / "prices.js"
-f.write_text("// Live-rebuilt daily. Run build_arena_data.py to refresh.\nconst MARKET="
+f.write_text("// Live-rebuilt daily. Momentum monkeys. Run build_arena_data.py to refresh.\nconst MARKET="
              + json.dumps(out, separators=(",", ":")) + ";\n")
 print(f"wrote {f} ({f.stat().st_size:,} bytes)")

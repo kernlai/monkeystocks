@@ -53,7 +53,7 @@
 
 <div style="margin-top:32px">
   <h1>Hire a <span class="hl">monkey.</span></h1>
-  <p class="sub">Click the coin to hire a monkey. It will trade every day since 25 Nov 2025 (the day the AI arena started) at real market prices: one random stock and one three-sided coin flip per day. Watch how it gets on. No refunds.</p>
+  <p class="sub">Click the coin to hire a monkey. It will trade every day since 25 Nov 2025 (the day the AI arena started) at real market prices: one three-sided coin flip per day, buying random recent winners. Watch how it gets on. No refunds.</p>
 </div>
 
 <div class="stage">
@@ -81,7 +81,7 @@
 </div>
 
 <div class="footnote">
-<b>FINE PRINT:</b> real daily prices, zero information, fresh coin every hire. Median monkey over this window: <span id="statmed"></span>. Best of our 10,000: <span id="statbest"></span>. If yours beats the famous +68%, remember: none of them can read. 🍌 Not investment advice.
+<b>FINE PRINT:</b> real daily prices, one momentum menu, fresh coin every hire. If your monkey beats the famous +68%, remember: it still cannot read. 🍌 Not investment advice.
 </div>
 </div>
 
@@ -97,8 +97,8 @@
   </div>
 </div>
 
-<script src="prices.js?v=5"></script>
-<script src="engine.js?v=7"></script>
+<script src="prices.js?v=6"></script>
+<script src="engine.js?v=8"></script>
 <script>
 const FIRST=["Sir","Baron","Dr","Captain","Professor","Lord","Dame","Chairman","DJ","Saint"];
 const LAST=["Flips-a-Lot","Bananas III","von Chimp","Monkéclair","Ape-ercrombie","McFlingpoo","Bongo","Chestbeater","Longtail","of Bananington"];
@@ -107,8 +107,6 @@ const scene=document.getElementById('scene'), big=document.getElementById('bigco
       score=document.getElementById('score'), verdict=document.getElementById('verdict'),
       logTb=document.querySelector('#log tbody');
 let deg=0, running=false;
-document.getElementById('statmed').textContent=(MARKET.meta.median_pct>=0?'+':'')+MARKET.meta.median_pct+'%';
-document.getElementById('statbest').textContent='+'+MARKET.meta.best_pct+'%';
 
 scene.onclick=()=>{
   if(running) return; running=true;
