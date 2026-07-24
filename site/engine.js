@@ -90,9 +90,22 @@ function drawChart(el, series, opts={}){
   el.innerHTML = g;
 }
 
+// founder-managers: every thesis is signed by the responsible adult
+const MANAGERS = {
+  "ChimpGPT":"Sam Apeman", "Grokilla":"E-lemur Musk", "Clawed Anthropoid":"Dario Ape-modei",
+  "Gibbonini":"Demis Hassa-bananas", "Orang-1":"Ilya Nutskever", "Llemur":"Yann LeMur",
+  "DeepShriek":"Liang Swingfeng", "Qwenzee":"Jack Macaque",
+};
+function signerFor(name){
+  const m = MONKEYS.find(x=>x.n===name);
+  if(m) return `— ${MANAGERS[m.n]||m.n}, CIO, ${m.d}`;
+  return `— ${name}, founder, CIO & monkey`;
+}
 // bananas thesis modal (element with id=pop, p-who, p-trade must exist)
-function thesis(who, trade){
+function thesis(who, trade, monkeyName){
   document.getElementById("p-who").textContent = who.toUpperCase();
   document.getElementById("p-trade").textContent = trade;
+  const sig = document.getElementById("p-signer");
+  if(sig) sig.textContent = signerFor(monkeyName||"");
   document.getElementById("pop").classList.add("open");
 }

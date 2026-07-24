@@ -66,12 +66,13 @@ td.usd{color:var(--ink2)}
     <div class="lead">We asked for the full investment thesis behind this trade. The manager responded:</div>
     <div class="nana">🍌</div>
     <div class="word">"bananas"</div>
+    <div class="who" id="p-signer" style="margin-top:16px"></div>
     <button class="btn" onclick="pop.classList.remove('open')" style="margin-top:20px">makes sense tbh</button>
   </div>
 </div>
 
 <script src="prices.js?v=5"></script>
-<script src="engine.js?v=6"></script>
+<script src="engine.js?v=7"></script>
 <script>
 const all = MONKEYS.flatMap(m => m.trades.map(tr => ({...tr, m}))).sort((a,b)=>b.t-a.t);
 const filters = document.getElementById('filters');
@@ -83,7 +84,7 @@ let cur="ALL";
 function render(){
   const rows = all.filter(x => cur==="ALL" || x.m.n===cur).slice(0,200);
   document.querySelector('#log tbody').innerHTML = rows.map(x=>`
-    <tr onclick='thesis("${x.m.n} · ${MARKET.dates[x.t]}","${x.side} ${x.tk} @ $${x.px.toFixed(2)}")'>
+    <tr onclick='thesis("${x.m.n} · ${MARKET.dates[x.t]}","${x.side} ${x.tk} @ $${x.px.toFixed(2)}","${x.m.n}")'>
     <td class="mono" style="font-size:12px">${MARKET.dates[x.t]}</td>
     <td class="m"><span class="dotc" style="background:${x.m.c}"></span><b>${x.m.n}</b></td>
     <td class="side ${x.side==='BUY'?'up':'dn'}">${x.side}</td>

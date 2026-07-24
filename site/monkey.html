@@ -93,12 +93,13 @@
     <div class="lead">We asked your monkey to explain this trade. It responded:</div>
     <div class="nana">🍌</div>
     <div class="word">"bananas"</div>
+    <div class="who" id="p-signer" style="margin-top:16px"></div>
     <button class="btn" onclick="pop.classList.remove('open')" style="margin-top:20px">makes sense tbh</button>
   </div>
 </div>
 
 <script src="prices.js?v=5"></script>
-<script src="engine.js?v=6"></script>
+<script src="engine.js?v=7"></script>
 <script>
 const FIRST=["Sir","Baron","Dr","Captain","Professor","Lord","Dame","Chairman","DJ","Saint"];
 const LAST=["Flips-a-Lot","Bananas III","von Chimp","Monkéclair","Ape-ercrombie","McFlingpoo","Bongo","Chestbeater","Longtail","of Bananington"];
@@ -136,7 +137,7 @@ scene.onclick=()=>{
       row.innerHTML=`<td class="mono" style="font-size:12px">${MARKET.dates[tr.t]}</td>
         <td class="side ${tr.side==='BUY'?'up':'dn'}">${tr.side}</td>
         <td class="mono">${tr.tk}</td><td class="mono">$${tr.px.toFixed(2)}</td>`;
-      row.style.cursor='pointer';row.onclick=()=>thesis(`${name} · ${MARKET.dates[tr.t]}`,`${tr.side} ${tr.tk} @ $${tr.px.toFixed(2)}`);
+      row.style.cursor='pointer';row.onclick=()=>thesis(`${name} · ${MARKET.dates[tr.t]}`,`${tr.side} ${tr.tk} @ $${tr.px.toFixed(2)}`,name);
       logTb.prepend(row);
     });
     if(shown<navs.length){ setTimeout(step,16); return; }
