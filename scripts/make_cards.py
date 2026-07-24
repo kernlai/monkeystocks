@@ -142,8 +142,8 @@ for name, r in results.items():
     ax.add_patch(box)
     ax.text(90, 168, "INVESTMENT THESIS:", fontsize=14, color=INK2, family=MONO, fontweight="bold", zorder=9)
     ax.text(90, 124, '"bananas"', fontsize=34, fontweight="bold", color=INK, family=SANS, zorder=9)
-    banana(ax, 395, 140, 1.0, z=9)
-    ax.text(756, 118, f"— {r['mgr']}, CIO, {r['lab']}", fontsize=13.5, color=INK2, family=MONO,
+    banana(ax, 395, 150, 0.9, z=9)
+    ax.text(756, 104, f"— {r['mgr']}, CIO, {r['lab']}", fontsize=13.5, color=INK2, family=MONO,
             fontweight="bold", zorder=9, ha="right")
     ax.text(72, 42, "MONKEYSTOCKS.AI · REAL PRICES · ZERO THOUGHTS", fontsize=13,
             color=INK2, family=MONO, fontweight="bold", zorder=8)
