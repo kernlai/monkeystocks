@@ -60,6 +60,7 @@ MENUS = MARKET["menus"]
 def replay(seed):
     rng = mulberry32(seed)
     cash, hold, trades = 100000.0, {}, []
+    basis = {}
     navs = [0.0]
     for t in range(1, T):
         j_any = math.floor(rng() * len(TKS))
@@ -72,17 +73,20 @@ def replay(seed):
             spend = min(frac * nav, cash)
             if spend > 1:
                 hold[tk] = hold.get(tk, 0) + spend / PX[tk][t]
+                basis[tk] = basis.get(tk, 0) + spend
                 cash -= spend
                 trades.append((t, "BUY", tk, PX[tk][t], spend))
         elif f < 2/3:
             tk = TKS[j_any]
             if tk in hold:
                 usd = hold.pop(tk) * PX[tk][t]
+                basis.pop(tk, None)
                 cash += usd
                 trades.append((t, "SELL", tk, PX[tk][t], usd))
         navs.append((cash + sum(sh * PX[s][t] for s, sh in hold.items())) / 1000 - 100)
     ret = navs[-1]
-    return trades, ret, navs
+    holdings = [(tk, sh * PX[tk][-1], basis[tk]) for tk, sh in hold.items()]
+    return trades, ret, navs, holdings, cash
 
 
 def canvas():
@@ -133,8 +137,8 @@ def banana_emoji(ax, x, y, px=48, z=9):
 results = {}
 for name, lab, mgr, col in MONKEYS:
     seed = META["house_seeds"][[m[0] for m in MONKEYS].index(name)]
-    trades, ret, navs = replay(seed)
-    results[name] = dict(trades=trades, ret=ret, navs=navs, lab=lab, mgr=mgr, col=col)
+    trades, ret, navs, holdings, cash = replay(seed)
+    results[name] = dict(trades=trades, ret=ret, navs=navs, holdings=holdings, cash=cash, lab=lab, mgr=mgr, col=col)
 
 # ---------------- trade cards ----------------
 for name, r in results.items():
@@ -287,5 +291,55 @@ for idx, (n, ret, is_spx) in enumerate(entries2):
 
 ax.text(72, 16, "MONKEYSTOCKS.AI", fontsize=13, color=INK2, family=MONO, fontweight="bold", zorder=8)
 fig.savefig(OUT / "leaderboard_chart.png"); plt.close(fig)
+
+# ---------------- portfolio statement cards ----------------
+for name, r in results.items():
+    fig, ax = canvas()
+    logo_chip(ax, 72, 628)
+    ax.text(72, 545, "PORTFOLIO STATEMENT", fontsize=32, fontweight="bold", color=INK, family=SANS, zorder=8)
+    ax.text(1140, 552, name, fontsize=24, fontweight="bold", color=INK, family=SANS, ha="right", zorder=8)
+    ax.text(1140, 524, f"{r['lab']} · YTD {fmt(r['ret'])} · as of {DATES[-1]}", fontsize=13,
+            color=INK2, family=MONO, fontweight="bold", ha="right", zorder=8)
+
+    PL, PR, PT, PB = 60, 1140, 500, 38
+    ax.add_patch(mp.FancyBboxPatch((PL+6, PB-6), PR-PL, PT-PB, boxstyle="round,pad=0,rounding_size=14",
+                 facecolor=INK, edgecolor="none", zorder=6))
+    ax.add_patch(mp.FancyBboxPatch((PL, PB), PR-PL, PT-PB, boxstyle="round,pad=0,rounding_size=14",
+                 facecolor=PAPER, edgecolor=INK, lw=3.5, zorder=7))
+    HDR_H = 44
+    ax.add_patch(mp.FancyBboxPatch((PL, PT-HDR_H), PR-PL, HDR_H, boxstyle="round,pad=0,rounding_size=14",
+                 facecolor=BAN, edgecolor=INK, lw=3.5, zorder=8))
+    ax.add_patch(mp.Rectangle((PL+2, PT-HDR_H), PR-PL-4, HDR_H//2, facecolor=BAN, edgecolor="none", zorder=8))
+    ax.plot([PL, PR], [PT-HDR_H, PT-HDR_H], color=INK, lw=3.5, zorder=9)
+    C1, C2, C3, C4 = 96, 480, 830, 1108
+    ax.text(C1, PT-HDR_H+14, "HOLDING", fontsize=13, family=MONO, fontweight="bold", color=INK, zorder=10)
+    ax.text(C2, PT-HDR_H+14, "VALUE", fontsize=13, family=MONO, fontweight="bold", color=INK, ha="right", zorder=10)
+    ax.text(C3, PT-HDR_H+14, "GAIN/LOSS", fontsize=13, family=MONO, fontweight="bold", color=INK, ha="right", zorder=10)
+    ax.text(C4, PT-HDR_H+14, "RESEARCH", fontsize=13, family=MONO, fontweight="bold", color=INK, ha="right", zorder=10)
+
+    hs = sorted(r["holdings"], key=lambda x: -x[1])[:7]
+    entries = [(tk, val, val/cost*100-100) for tk, val, cost in hs]
+    n_more = len(r["holdings"]) - len(hs)
+    rows_n = len(entries) + 1  # + cash row
+    ROW_H = (PT - HDR_H - PB - 10) / max(rows_n, 6)
+    y_top = PT - HDR_H
+    for idx, (tk, val, pnl) in enumerate(entries):
+        ry = y_top - (idx + 1) * ROW_H
+        cy = ry + ROW_H / 2 - 7
+        if idx: ax.plot([PL+14, PR-14], [y_top - idx * ROW_H, y_top - idx * ROW_H], color="#e5d9b8", lw=1.6, zorder=9)
+        ax.text(C1, cy, tk, fontsize=18, color=INK, family=SANS, fontweight="bold", zorder=10)
+        ax.text(C2, cy, f"\${val:,.0f}", fontsize=17, family=MONO, fontweight="bold", color=INK, ha="right", zorder=10)
+        ax.text(C3, cy, fmt(pnl), fontsize=17, family=MONO, fontweight="bold",
+                color=GREEN if pnl >= 0 else RED, ha="right", zorder=10)
+        ax.text(C4, cy, "none", fontsize=15, family=MONO, fontweight="bold", color=INK2, ha="right", zorder=10)
+    ry = y_top - rows_n * ROW_H
+    cy = ry + ROW_H / 2 - 7
+    ax.plot([PL+14, PR-14], [y_top - (rows_n-1) * ROW_H, y_top - (rows_n-1) * ROW_H], color="#e5d9b8", lw=1.6, zorder=9)
+    extra = f"  (+{n_more} smaller holdings)" if n_more > 0 else ""
+    ax.text(C1, cy, "CASH" + extra, fontsize=16, color=INK2, family=SANS, fontweight="bold", zorder=10)
+    ax.text(C2, cy, f"\${r['cash']:,.0f}", fontsize=17, family=MONO, fontweight="bold", color=INK2, ha="right", zorder=10)
+    ax.text(72, 16, "MONKEYSTOCKS.AI", fontsize=13, color=INK2, family=MONO, fontweight="bold", zorder=8)
+    slug = name.lower().replace(" ", "-")
+    fig.savefig(OUT / f"portfolio_{slug}.png"); plt.close(fig)
 
 print("cards written:", sorted(p.name for p in OUT.glob("*.png")))

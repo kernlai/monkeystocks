@@ -88,7 +88,10 @@ def sim(seed):
 
 print("running the 8 momentum monkeys...")
 rets = {s: sim(s) for s in SEEDS}
-house = sorted(SEEDS, key=lambda s: -rets[s])  # names map best->worst
+# IDENTITY PIN: names were assigned to seeds by rank on launch day (24 Jul 2026)
+# and must NEVER be re-sorted, or the monkeys would body-swap when ranks cross.
+# ChimpGPT=6, Grokilla=7, Clawed=2, Gibbonini=4, Orang-1=3, Llemur=8, DeepShriek=1, Qwenzee=5
+house = [6, 7, 2, 4, 3, 8, 1, 5]
 spy_ret = px["SPY"][-1] / px["SPY"][0] * 100 - 100
 
 meta = {
