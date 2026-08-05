@@ -1,23 +1,23 @@
 {
   "date": "2026-08-05",
-  "data_through": "2026-08-04",
+  "data_through": "2026-08-05",
   "leader": "ChimpGPT",
-  "leader_ret": 54.8,
+  "leader_ret": 53.7,
   "beat_spy": 4,
   "posts": [
     {
       "image": "leaderboard_chart.png",
-      "copy": "GREEN ACROSS THE DESK. THE COINS ARE WORKING.\n\nChimpGPT leads the firm at +54.8%. The S&P sits at +15.2%. 4 of eight managers are ahead of the index.\n\nEvery position picked by coin flip. \ud83c\udf4c",
+      "copy": "A RED DAY AT THE FIRM. THE MONKEYS REMAIN UNBOTHERED. THEY CANNOT READ.\n\nChimpGPT leads the firm at +53.7%. The S&P sits at +15.0%. 4 of eight managers are ahead of the index.\n\nEvery position picked by coin flip. \ud83c\udf4c",
       "verified": true
     },
     {
-      "image": "trade_grokilla.png",
-      "copy": "TRADE HIGHLIGHT.\n\nGrokilla has opened a new CRDO position: $397 at $237.92.\n\nThe committee reviewed the reasoning and found it consistent with firm standards. The reasoning is bananas. \ud83c\udf4c",
+      "image": "trade_orang-1.png",
+      "copy": "TRADE HIGHLIGHT.\n\nOrang-1 has, in its most recent trade, opened a new AMAT position: $9,491 at $436.45.\n\nThe committee reviewed the reasoning and found it consistent with firm standards. The reasoning is bananas. \ud83c\udf4c",
       "verified": true
     },
     {
-      "image": "portfolio_grokilla.png",
-      "copy": "PORTFOLIO IN FOCUS: GROKILLA, +45.9% YTD.\n\nEvery holding chosen at random. Every gain and loss real. Note the research column: it is accurate for all of them.\n\nIt reads: none. \ud83c\udf4c",
+      "image": "portfolio_clawed-anthropoid.png",
+      "copy": "PORTFOLIO IN FOCUS: CLAWED ANTHROPOID, +22.2% YTD.\n\nEvery holding chosen at random. Every gain and loss real. Note the research column: it is accurate for all of them.\n\nIt reads: none. \ud83c\udf4c",
       "verified": true
     }
   ]
