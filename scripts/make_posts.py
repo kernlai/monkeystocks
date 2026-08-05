@@ -45,12 +45,12 @@ def replay(seed):
             spend = min(frac*nav, cash)
             if spend > 1:
                 hold[tk] = hold.get(tk,0)+spend/PX[tk][t]; cash -= spend
-                if t == T-1: last = ("BUY", tk, PX[tk][t], spend)
+                last = ("BUY", tk, PX[tk][t], spend, t)
         elif f < 2/3:
             tk = TKS[j]
             if tk in hold:
                 usd = hold.pop(tk)*PX[tk][t]; cash += usd
-                if t == T-1: last = ("SELL", tk, PX[tk][t], usd)
+                last = ("SELL", tk, PX[tk][t], usd, t)
         navs.append((cash + sum(sh*PX[s][t] for s,sh in hold.items()))/1000 - 100)
     return dict(ret=navs[-1], prev=navs[-2], last=last)
 
@@ -58,65 +58,50 @@ R = {n: replay(s) for n,s in zip(NAMES, META["house_seeds"])}
 board = sorted(NAMES, key=lambda n:-R[n]["ret"]); leader = board[0]
 beat = sum(1 for n in NAMES if R[n]["ret"] > SPY)
 up = sum(1 for n in NAMES if R[n]["ret"] > R[n]["prev"])
-trades = sorted([(n, R[n]["last"]) for n in NAMES if R[n]["last"]],
-                key=lambda x:(x[1][0]!="SELL", -x[1][3]))
 def f(x): return ("+" if x>=0 else "")+f"{x:.1f}%"
-wd = datetime.strptime(DATES[-1], "%Y-%m-%d").weekday()   # 0=Mon
 slug = lambda n: n.lower().replace(" ","-")
+DAYKEY = sum(ord(c) for c in DATES[-1])          # deterministic day-varying index
+def pick(opts): return opts[DAYKEY % len(opts)]
 
-posts = []  # (image_or_None, copy)
+posts = []
 
-# ---- anchor post, rotated by weekday ----
-if wd == 0:
-    posts.append((None,
-      "MINUTES OF THE MONDAY INVESTMENT COMMITTEE.\n\n"
-      f"Attendance: 8 of 8. Review of last week: bananas. Outlook: bananas.\n"
-      f"{leader} remains firm leader at {f(R[leader]['ret'])}, vs the S&P at {f(SPY)}.\n\n"
-      "Action items: flip the coin at the open. One each. \U0001F34C"))
-elif wd == 2:
-    m = board[(T//5) % 8]  # rotate which monkey each Wednesday
-    posts.append((f"portfolio_{slug(m)}.png",
-      f"PORTFOLIO STATEMENT: {m.upper()}, {f(R[m]['ret'])} YTD.\n\n"
-      "Every holding chosen at random. Every gain and loss real. The research "
-      "column is accurate for all of them.\n\nIt reads: none. \U0001F34C"))
-elif wd == 3:
-    posts.append(("leaderboard_chart.png",
-      f"{beat} OF 8 MONKEYS ARE BEATING THE S&P 500.\n\n"
-      f"The market is up {f(SPY)}. {leader} leads the firm at {f(R[leader]['ret'])}, "
-      "with a strategy of flipping a coin once a day.\n\n"
-      "Good performance is not proof of skill. \U0001F34C"))
-elif wd == 4:
-    posts.append(("leaderboard_chart.png",
-      "WEEK IN REVIEW, FROM THE DESK OF THE CIO.\n\n"
-      f"The firm closed the week with {beat} of eight managers ahead of the S&P 500. "
-      f"{leader} leads at {f(R[leader]['ret'])} vs the index's {f(SPY)}.\n\n"
-      "We remain confident in our process. The process is a coin. \U0001F34C"))
-elif wd >= 5:
-    posts.append((None,
-      "NOTICE: MARKETS ARE CLOSED THIS WEEKEND.\n\n"
-      "The investment team will spend the time with their families, reflecting on process. "
-      f"Positioning unchanged: {leader} leads at {f(R[leader]['ret'])}.\n\n"
-      "The coins will be cleaned and returned to the vault by Monday. \U0001F34C"))
-else:  # Tue default
-    hook = ("ALL EIGHT MONKEYS FINISHED LOWER. NO EMERGENCY MEETING WAS HELD." if up <= 2
-            else f"THE STANDINGS, AS OF THE CLOSE.")
-    posts.append(("leaderboard_chart.png",
-      f"{hook}\n\n{leader} leads at {f(R[leader]['ret'])}. The S&P sits at {f(SPY)}. "
-      f"{beat} of eight ahead of the index.\n\n"
-      "Every position picked by coin flip. Every thesis: bananas. \U0001F34C"))
+# ---- POST 1: leaderboard ----
+if up <= 2:
+    hook = pick(["ALL EIGHT MONKEYS FINISHED LOWER. NO EMERGENCY MEETING WAS HELD.",
+                 "A RED DAY AT THE FIRM. THE MONKEYS REMAIN UNBOTHERED. THEY CANNOT READ."])
+elif up >= 7:
+    hook = pick(["GREEN ACROSS THE DESK. THE COINS ARE WORKING.",
+                 "A STRONG SESSION FOR THE FIRM."])
+else:
+    hook = pick([f"{beat} OF 8 MONKEYS ARE BEATING THE S&P 500.",
+                 "THE STANDINGS, AS OF THE CLOSE.",
+                 "TODAY'S LEADERBOARD. STILL NO THOUGHTS INVOLVED."])
+posts.append(("leaderboard_chart.png",
+  f"{hook}\n\n{leader} leads the firm at {f(R[leader]['ret'])}. The S&P sits at {f(SPY)}. "
+  f"{beat} of eight managers are ahead of the index.\n\n"
+  "Every position picked by coin flip. \U0001F34C"))
 
-# ---- trade post (takes priority slot if a trade happened today) ----
-if trades:
-    n,(side,tk,px,usd) = trades[0]
-    verb = "EXITED ITS ENTIRE" if side=="SELL" else "OPENED A"
-    posts.insert(0 if wd in (0,5,6) else 1, (f"trade_{slug(n)}.png",
-      f"{n.upper()} HAS {verb} {tk} POSITION. ${usd:,.0f} AT ${px:,.2f}.\n\n"
-      "The investment committee reviewed the reasoning and found it consistent with "
-      "firm standards.\n\nThe reasoning is bananas. \U0001F34C"))
+# ---- POST 2: highlighted trade (most recent; note if it was today) ----
+tr = sorted([(n, R[n]["last"]) for n in NAMES if R[n]["last"]],
+            key=lambda x:(x[1][4] != T-1, x[1][0] != "SELL", -x[1][3]))
+n,(side,tk,px,usd,tday) = tr[0]
+when = "has" if tday == T-1 else "has, in its most recent trade,"
+verb = "exited its entire" if side=="SELL" else "opened a new"
+posts.append((f"trade_{slug(n)}.png",
+  f"TRADE HIGHLIGHT.\n\n{n} {when} {verb} {tk} position: ${usd:,.0f} at ${px:,.2f}.\n\n"
+  "The committee reviewed the reasoning and found it consistent with firm standards. "
+  "The reasoning is bananas. \U0001F34C"))
+
+# ---- POST 3: a top performer's portfolio (rotate through top 3 by day) ----
+m = board[DAYKEY % 3]
+posts.append((f"portfolio_{slug(m)}.png",
+  f"PORTFOLIO IN FOCUS: {m.upper()}, {f(R[m]['ret'])} YTD.\n\n"
+  "Every holding chosen at random. Every gain and loss real. Note the research column: "
+  "it is accurate for all of them.\n\nIt reads: none. \U0001F34C"))
 
 # ---- FACT CHECK: every % and $ figure in copy must exist in the data ----
 valid_pcts = {f"{v:.1f}" for v in [SPY]+[R[n]["ret"] for n in NAMES]}
-valid_usd  = {round(t[1][3]) for t in trades} | {round(t[1][2]) for t in trades}
+valid_usd  = {round(R[n]['last'][3]) for n in NAMES if R[n]['last']} | {round(R[n]['last'][2]) for n in NAMES if R[n]['last']}
 checked = []
 for img, copy in posts:
     ok = True
@@ -130,11 +115,11 @@ for img, copy in posts:
 
 payload = dict(date=date.today().isoformat(), data_through=DATES[-1],
                leader=leader, leader_ret=round(R[leader]["ret"],1),
-               beat_spy=beat, trades=len(trades), posts=checked)
+               beat_spy=beat, posts=checked)
 (OUT/"posts.json").write_text(json.dumps(payload, indent=2))
 
 md = [f"# MonkeyStocks post queue — {payload['date']}",
-      f"_data through {DATES[-1]} · {leader} {f(R[leader]['ret'])} · {beat}/8 beat S&P · {len(trades)} trades_\n"]
+      f"_data through {DATES[-1]} · {leader} {f(R[leader]['ret'])} · {beat}/8 beat S&P_\n"]
 for i,p in enumerate(checked,1):
     flag = "" if p["verified"] else "  ⚠️ FAILED FACT CHECK — DO NOT AUTO-POST"
     att = f"attach `{p['image']}`" if p["image"] else "text only"
