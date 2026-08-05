@@ -16,6 +16,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python scripts/build_arena_data.py
       - run: python scripts/make_cards.py
+      - run: python scripts/make_posts.py
       - name: Commit refreshed prices and cards
         run: |
           git config user.name "monkeystocks-bot"
