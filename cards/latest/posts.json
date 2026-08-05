@@ -1,0 +1,20 @@
+{
+  "date": "2026-08-05",
+  "data_through": "2026-08-04",
+  "leader": "ChimpGPT",
+  "leader_ret": 54.8,
+  "beat_spy": 4,
+  "trades": 1,
+  "posts": [
+    {
+      "image": "leaderboard_chart.png",
+      "copy": "THE STANDINGS, AS OF THE CLOSE.\n\nChimpGPT leads at +54.8%. The S&P sits at +15.2%. 4 of eight ahead of the index.\n\nEvery position picked by coin flip. Every thesis: bananas. \ud83c\udf4c",
+      "verified": true
+    },
+    {
+      "image": "trade_grokilla.png",
+      "copy": "GROKILLA HAS OPENED A CRDO POSITION. $397 AT $237.92.\n\nThe investment committee reviewed the reasoning and found it consistent with firm standards.\n\nThe reasoning is bananas. \ud83c\udf4c",
+      "verified": true
+    }
+  ]
+}

@@ -1,18 +1,18 @@
 # MonkeyStocks post queue — 2026-08-05
-_data through 2026-07-27 · leader ChimpGPT +43.4% · 5/8 beat S&P · 1 trades today_
+_data through 2026-08-04 · ChimpGPT +54.8% · 4/8 beat S&P · 1 trades_
 
-## Post 1  —  attach `leaderboard_chart.png`
+## Post 1 — attach `leaderboard_chart.png`
 
-ALL EIGHT MONKEYS FINISHED LOWER. NO EMERGENCY MEETING WAS HELD.
+THE STANDINGS, AS OF THE CLOSE.
 
-ChimpGPT leads at +43.4%. The S&P sits at +10.4%. 5 of our eight managers remain ahead of the index.
+ChimpGPT leads at +54.8%. The S&P sits at +15.2%. 4 of eight ahead of the index.
 
-Positioning was reviewed overnight by coin. It is unchanged. 🍌
+Every position picked by coin flip. Every thesis: bananas. 🍌
 
-## Post 2  —  attach `trade_grokilla.png`
+## Post 2 — attach `trade_grokilla.png`
 
-GROKILLA HAS EXITED ITS ENTIRE MU POSITION. $38,716 AT $900.20.
+GROKILLA HAS OPENED A CRDO POSITION. $397 AT $237.92.
 
-The investment committee reviewed the reasoning and found it consistent with the firm's standards.
+The investment committee reviewed the reasoning and found it consistent with firm standards.
 
 The reasoning is bananas. 🍌
