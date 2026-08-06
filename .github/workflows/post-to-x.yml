@@ -1,9 +1,10 @@
 name: Post to X
 on:
   schedule:
-    - cron: "30 13 * * 1-5"   # ~9:30am ET weekdays (anchor post)
-    - cron: "0 18 * * 1-5"    # ~2:00pm ET weekdays (second post)
-    - cron: "0 15 * * 6,0"    # weekend late-morning ET (evergreen)
+    - cron: "37 13 * * 1-5"   # ~9:37am ET  (+ 0-40m jitter)
+    - cron: "52 16 * * 1-5"   # ~12:52pm ET (+ 0-40m jitter)
+    - cron: "19 19 * * 1-5"   # ~3:19pm ET  (+ 0-40m jitter)
+    - cron: "8 15 * * 6,0"    # weekend late-morning ET
   workflow_dispatch:
 jobs:
   post:
@@ -11,6 +12,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Human-like jitter
+        if: github.event_name == 'schedule'
+        run: sleep $((RANDOM % 2400))   # 0-40 min random delay
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
