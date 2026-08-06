@@ -44,7 +44,7 @@ client = tweepy.Client(consumer_key=os.environ["X_API_KEY"],
                        access_token_secret=os.environ["X_ACCESS_SECRET"])
 
 media_ids = None
-if False and img and img.exists():  # TEMP diagnostic: force text-only
+if img and img.exists():
     try:
         oauth = OAuth1Session(os.environ["X_API_KEY"], os.environ["X_API_SECRET"],
                               os.environ["X_ACCESS_TOKEN"], os.environ["X_ACCESS_SECRET"])
