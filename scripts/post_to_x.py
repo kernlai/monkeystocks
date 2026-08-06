@@ -52,14 +52,15 @@ if img and img.exists():
             r = oauth.post("https://api.x.com/2/media/upload",
                            data={"media_category": "tweet_image"},
                            files={"media": fh})
-        if r.status_code >= 400:
-            print(f"media upload failed ({r.status_code}): {r.text[:200]} -> posting text-only")
-        else:
-            j = r.json().get("data", r.json())
-            mid = j.get("id") or j.get("media_id_string") or str(j.get("media_id"))
-            media_ids = [mid]
+        r.raise_for_status()
+        j = r.json().get("data", r.json())
+        media_ids = [j.get("id") or j.get("media_id_string") or str(j.get("media_id"))]
     except Exception as e:
-        print(f"media upload error: {e} -> posting text-only")
+        print(f"IMAGE UPLOAD FAILED: {e}\nAborting — will not post copy without its image.")
+        sys.exit(1)
+    # this post requires its image; refuse to post text-only
+elif img:
+    print(f"expected image {img} missing; aborting."); sys.exit(1)
 
 resp = client.create_tweet(text=p["copy"], media_ids=media_ids)
 tid = resp.data["id"]
