@@ -37,18 +37,32 @@ if not live:
     print("\nDRY-RUN: set POST_LIVE=1 (and provide X creds) to publish."); sys.exit(0)
 
 import tweepy
+from requests_oauthlib import OAuth1Session
 client = tweepy.Client(consumer_key=os.environ["X_API_KEY"],
                        consumer_secret=os.environ["X_API_SECRET"],
                        access_token=os.environ["X_ACCESS_TOKEN"],
                        access_token_secret=os.environ["X_ACCESS_SECRET"])
+
 media_ids = None
 if img and img.exists():
-    auth = tweepy.OAuth1UserHandler(os.environ["X_API_KEY"], os.environ["X_API_SECRET"],
-                                    os.environ["X_ACCESS_TOKEN"], os.environ["X_ACCESS_SECRET"])
-    api = tweepy.API(auth)
-    media_ids = [api.media_upload(str(img)).media_id]
+    try:
+        oauth = OAuth1Session(os.environ["X_API_KEY"], os.environ["X_API_SECRET"],
+                              os.environ["X_ACCESS_TOKEN"], os.environ["X_ACCESS_SECRET"])
+        with open(img, "rb") as fh:
+            r = oauth.post("https://api.x.com/2/media/upload",
+                           data={"media_category": "tweet_image"},
+                           files={"media": fh})
+        if r.status_code >= 400:
+            print(f"media upload failed ({r.status_code}): {r.text[:200]} -> posting text-only")
+        else:
+            j = r.json().get("data", r.json())
+            mid = j.get("id") or j.get("media_id_string") or str(j.get("media_id"))
+            media_ids = [mid]
+    except Exception as e:
+        print(f"media upload error: {e} -> posting text-only")
+
 resp = client.create_tweet(text=p["copy"], media_ids=media_ids)
 tid = resp.data["id"]
-print(f"posted: https://x.com/i/web/status/{tid}")
+print(f"posted{' with image' if media_ids else ' (text-only)'}: https://x.com/i/web/status/{tid}")
 log["posted"].append({"key": key, "id": str(tid), "copy": p["copy"][:80]})
 LOG.write_text(json.dumps(log, indent=2))
