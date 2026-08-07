@@ -100,10 +100,17 @@ def canvas():
 
 
 def logo_chip(ax, x=72, y=610):
-    ax.add_patch(mp.FancyBboxPatch((x, y - 20), 268, 44, boxstyle="round,pad=6",
+    # draw text first, measure it, then fit the chip around it (font-independent)
+    fig = ax.figure
+    txt = ax.text(x + 18, y - 7, "MONKEYSTOCKS", fontsize=21, fontweight="bold",
+                  color=INK, family=SANS, zorder=9)
+    fig.canvas.draw()
+    bb = txt.get_window_extent().transformed(ax.transData.inverted())
+    px_, py_ = 18, 13
+    ax.add_patch(mp.FancyBboxPatch((bb.x0 - px_, bb.y0 - py_),
+                 bb.width + 2 * px_, bb.height + 2 * py_,
+                 boxstyle="round,pad=0,rounding_size=8",
                  facecolor=BAN, edgecolor=INK, lw=3.5, zorder=8))
-    ax.text(x + 12, y - 7, "MONKEYSTOCKS", fontsize=21, fontweight="bold",
-            color=INK, family=SANS, zorder=9)
 
 
 def banana(ax, cx, cy, s=1.0, z=9):
