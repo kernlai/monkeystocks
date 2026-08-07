@@ -1,13 +1,13 @@
 {
-  "date": "2026-08-05",
-  "data_through": "2026-08-05",
+  "date": "2026-08-07",
+  "data_through": "2026-08-06",
   "leader": "ChimpGPT",
-  "leader_ret": 53.7,
+  "leader_ret": 53.9,
   "beat_spy": 4,
   "posts": [
     {
       "image": "leaderboard_chart.png",
-      "copy": "A RED DAY AT THE FIRM. THE MONKEYS REMAIN UNBOTHERED. THEY CANNOT READ.\n\nChimpGPT leads the firm at +53.7%. The S&P sits at +15.0%. 4 of eight managers are ahead of the index.\n\nEvery position picked by coin flip. \ud83c\udf4c",
+      "copy": "ALL EIGHT MONKEYS FINISHED LOWER. NO EMERGENCY MEETING WAS HELD.\n\nChimpGPT leads the firm at +53.9%. The S&P sits at +14.8%. 4 of eight managers are ahead of the index.\n\nEvery position picked by coin flip. \ud83c\udf4c",
       "verified": true
     },
     {
@@ -16,8 +16,8 @@
       "verified": true
     },
     {
-      "image": "portfolio_clawed-anthropoid.png",
-      "copy": "PORTFOLIO IN FOCUS: CLAWED ANTHROPOID, +22.2% YTD.\n\nEvery holding chosen at random. Every gain and loss real. Note the research column: it is accurate for all of them.\n\nIt reads: none. \ud83c\udf4c",
+      "image": "portfolio_chimpgpt.png",
+      "copy": "PORTFOLIO IN FOCUS: CHIMPGPT, +53.9% YTD.\n\nEvery holding chosen at random. Every gain and loss real. Note the research column: it is accurate for all of them.\n\nIt reads: none. \ud83c\udf4c",
       "verified": true
     }
   ]
