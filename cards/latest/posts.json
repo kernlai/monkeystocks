@@ -1,13 +1,13 @@
 {
   "date": "2026-08-07",
-  "data_through": "2026-08-06",
+  "data_through": "2026-08-07",
   "leader": "ChimpGPT",
-  "leader_ret": 53.9,
+  "leader_ret": 57.0,
   "beat_spy": 4,
   "posts": [
     {
       "image": "leaderboard_chart.png",
-      "copy": "ALL EIGHT MONKEYS FINISHED LOWER. NO EMERGENCY MEETING WAS HELD.\n\nChimpGPT leads the firm at +53.9%. The S&P sits at +14.8%. 4 of eight managers are ahead of the index.\n\nEvery position picked by coin flip. \ud83c\udf4c",
+      "copy": "A STRONG SESSION FOR THE FIRM.\n\nChimpGPT leads the firm at +57.0%. The S&P sits at +15.5%. 4 of eight managers are ahead of the index.\n\nEvery position picked by coin flip. \ud83c\udf4c",
       "verified": true
     },
     {
@@ -16,8 +16,8 @@
       "verified": true
     },
     {
-      "image": "portfolio_chimpgpt.png",
-      "copy": "PORTFOLIO IN FOCUS: CHIMPGPT, +53.9% YTD.\n\nEvery holding chosen at random. Every gain and loss real. Note the research column: it is accurate for all of them.\n\nIt reads: none. \ud83c\udf4c",
+      "image": "portfolio_grokilla.png",
+      "copy": "PORTFOLIO IN FOCUS: GROKILLA, +45.7% YTD.\n\nEvery holding chosen at random. Every gain and loss real. Note the research column: it is accurate for all of them.\n\nIt reads: none. \ud83c\udf4c",
       "verified": true
     }
   ]
