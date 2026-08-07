@@ -135,6 +135,20 @@ def fmt(r):
     return ("+" if r >= 0 else "") + f"{r:.1f}%"
 
 
+def fit_text(ax, x, y, text, max_right, size, **kw):
+    """Place left-aligned text, shrinking font until its right edge <= max_right."""
+    fig = ax.figure
+    t = ax.text(x, y, text, fontsize=size, **kw)
+    for _ in range(12):
+        fig.canvas.draw()
+        r = t.get_window_extent().transformed(ax.transData.inverted())
+        if r.x1 <= max_right or size <= 11:
+            break
+        size -= 1
+        t.set_fontsize(size)
+    return t
+
+
 BANANA_IMG = plt.imread(HERE / "assets" / "banana.png")
 def banana_emoji(ax, x, y, px=48, z=9):
     ab = AnnotationBbox(OffsetImage(BANANA_IMG, zoom=px / BANANA_IMG.shape[0]), (x, y),
@@ -218,7 +232,7 @@ for idx, (n, ret, is_spx) in enumerate(entries):
         continue
     d = ret - SPY_RET
     ax.add_patch(mp.Circle((C_NAME-8, cy+7), 8, facecolor=results[n]["col"], edgecolor=INK, lw=2, zorder=10))
-    ax.text(C_NAME+8, cy, n, fontsize=19, color=INK, family=SANS, fontweight="bold", zorder=10)
+    fit_text(ax, C_NAME+8, cy, n, C_LAB-20, 19, color=INK, family=SANS, fontweight="bold", zorder=10)
     ax.text(C_LAB, cy, results[n]["lab"], fontsize=14.5, color=INK2, family=SANS, zorder=10)
     ax.text(C_RET, cy, fmt(ret), fontsize=19, family=MONO, fontweight="bold",
             color=GREEN if ret >= 0 else RED, ha="right", zorder=10)
@@ -292,7 +306,7 @@ for idx, (n, ret, is_spx) in enumerate(entries2):
         ax.text(TPR - 26, cy, fmt(ret), fontsize=16, family=MONO, fontweight="bold", color=INK2, ha="right", zorder=10)
         continue
     ax.add_patch(mp.Circle((TPL + 42, cy + 6), 7, facecolor=results[n]["col"], edgecolor=INK, lw=2, zorder=10))
-    ax.text(TPL + 56, cy, n, fontsize=16, color=INK, family=SANS, fontweight="bold", zorder=10)
+    fit_text(ax, TPL + 56, cy, n, TPR-150, 16, color=INK, family=SANS, fontweight="bold", zorder=10)
     ax.text(TPR - 26, cy, fmt(ret), fontsize=16, family=MONO, fontweight="bold",
             color=GREEN if ret >= 0 else RED, ha="right", zorder=10)
 
